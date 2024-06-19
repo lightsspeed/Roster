@@ -1,0 +1,14 @@
+python3 -m venv venv
+source venv/bin/activate
+pip install Flask pandas
+
+
+
+I want to create a roster generation website.
+
+I want to insert name of Call Co- ordinators(CC), which are catergorised in males and females, agency names. so this should have Input and insert options.
+This roster should be made monthly. so create a year tab onwards 2024 and month starting from january.
+Roster has various shifts for Male and Female CC's. Shift names are M, G1, G2, G3, S3, N.
+In "M" shift there are only two girls.
+In G1 & G2 shift there are minimum of 5 girls and max 6 girls, can include 1 or 2 boys.
+In G3, boys and girls are there.

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Roster Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .M { background-color: #FFD700; }
+        .G1 { background-color: #ADFF2F; }
+        .G2 { background-color: #7FFFD4; }
+        .G3 { background-color: #1E90FF; }
+        .S3 { background-color: #BA55D3; }
+        .N { background-color: #FF4500; }
+        table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto mt-10">
+        <div class="bg-white p-10 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold mb-4 text-center">Weekly Roster Generator for July 2024</h1>
+            <form action="/generate" method="post" class="text-center">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate Roster</button>
+            </form>
+            <div class="text-center mt-4 text-xl">July 2024</div>
+            <div class="mt-10">
+                <h2 class="text-2xl font-semibold mb-4">Girls' Roster</h2>
+                {% if girls_html %}
+                    <div class="overflow-x-auto">{{ girls_html | safe }}</div>
+                    <div class="text-center mt-4">
+                        <a href="/download/girls" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Download Girls' Roster</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="mt-10">
+                <h2 class="text-2xl font-semibold mb-4">Boys' Roster</h2>
+                {% if boys_html %}
+                    <div class="overflow-x-auto">{{ boys_html | safe }}</div>
+                    <div class="text-center mt-4">
+                        <a href="/download/boys" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Download Boys' Roster</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+function main(workbook: ExcelScript.Workbook) {
+    const coordinatorsSheet = workbook.getWorksheet("Coordinators");
+    const rosterSheet = workbook.getWorksheet("Roster");
+
+    // Clear previous roster data
+    rosterSheet.getRange("A1:Z1000").clear();
+
+    // Set table headers
+    rosterSheet.getRange("A1").setValue("Name");
+    rosterSheet.getRange("B1").setValue("Agency");
+    rosterSheet.getRange("C1").setValue("Gender");
+
+    const coordinators = coordinatorsSheet.getUsedRange().getValues();
+
+    const maleCC: string[] = [];
+    const femaleCC: string[] = [];
+
+    // Populate male and female coordinator arrays and set up the roster table headers
+    for (let i = 1; i < coordinators.length; i++) {
+        const name = coordinators[i][0];
+        const agency = coordinators[i][1];
+        const gender = coordinators[i][2];
+
+        if (gender === "M") {
+            maleCC.push(name);
+        } else if (gender === "F") {
+            femaleCC.push(name);
+        }
+
+        // Set up the roster table with coordinator names and details
+        rosterSheet.getRange(`A${i + 1}`).setValue(name);
+        rosterSheet.getRange(`B${i + 1}`).setValue(agency);
+        rosterSheet.getRange(`C${i + 1}`).setValue(gender);
+    }
+
+    // Get the year and month from the specified cells
+    const year = parseInt(coordinatorsSheet.getRange("E1").getValue() as string);
+    const month = parseInt(coordinatorsSheet.getRange("E2").getValue() as string);
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // Set up the days of the week in the header rows starting from column D
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    for (let day = 1; day <= daysInMonth; day++) {
+        const columnLetter = getColumnLetter(day + 3); // Day + 3 because A, B, and C are taken
+        const date = new Date(year, month - 1, day);
+        rosterSheet.getRange(`${columnLetter}1`).setValue(daysOfWeek[date.getDay()]);
+    }
+
+    let previousNightShiftCC: string[] = [];
+
+    // Assign shifts to coordinators for each day
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month - 1, day);
+        const dayOfWeek = date.getDay();
+
+        const shiftAssignments: { [key: string]: string[] } = {
+            "M": [],
+            "G1": [],
+            "G2": [],
+            "G3": [],
+            "S3": [],
+            "N": []
+        };
+
+        for (const shift of Object.keys(shiftAssignments)) {
+            switch (shift) {
+                case "M":
+                    if (femaleCC.length >= 2) {
+                        shiftAssignments[shift] = getRandomItems(femaleCC, 2);
+                    }
+                    break;
+                case "G1":
+                case "G2":
+                    if (femaleCC.length >= 5) {
+                        shiftAssignments[shift] = getRandomItems(femaleCC, 5);
+                        if (maleCC.length >= 1) {
+                            shiftAssignments[shift].push(...getRandomItems(maleCC, 1));
+                        }
+                    }
+                    break;
+                case "G3":
+                    if (femaleCC.length >= 3 && maleCC.length >= 3) {
+                        shiftAssignments[shift] = getRandomItems(femaleCC, 3);
+                        shiftAssignments[shift].push(...getRandomItems(maleCC, 3));
+                    }
+                    break;
+                case "S3":
+                    if (maleCC.length >= 5) {
+                        shiftAssignments[shift] = getRandomItems(maleCC, 5);
+                    }
+                    break;
+                case "N":
+                    if (maleCC.length >= 1) {
+                        let nightShiftCC: string[];
+                        do {
+                            nightShiftCC = getRandomItems(maleCC, 1);
+                        } while (previousNightShiftCC.includes(nightShiftCC[0]));
+                        shiftAssignments[shift] = nightShiftCC;
+                        previousNightShiftCC = nightShiftCC;
+                    }
+                    break;
+            }
+        }
+
+        // Fill in the shift assignments for each coordinator for the day
+        for (let i = 1; i < coordinators.length; i++) {
+            const name = coordinators[i][0];
+            const rowIndex = i + 1;
+            const columnLetter = getColumnLetter(day + 3);
+
+            for (const shift in shiftAssignments) {
+                if (shiftAssignments[shift].includes(name)) {
+                    if (shift === "N" && dayOfWeek === 0) { // Assign N shift for Sunday
+                        rosterSheet.getRange(`${columnLetter}${rowIndex}`).setValue(shift);
+                    } else if (dayOfWeek !== 6) { // Skip Saturday
+                        rosterSheet.getRange(`${columnLetter}${rowIndex}`).setValue(shift);
+                    }
+                }
+            }
+        }
+    }
+
+    function getRandomItems(arr: string[], count: number): string[] {
+        const shuffled = arr.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+    }
+
+    function getColumnLetter(colIndex: number): string {
+        let temp = "";
+        let letter = "";
+        while (colIndex > 0) {
+            temp = (colIndex - 1) % 26;
+            letter = String.fromCharCode(temp + 65) + letter;
+            colIndex = (colIndex - temp - 1) / 26;
+        }
+        return letter;
+    }
+}
